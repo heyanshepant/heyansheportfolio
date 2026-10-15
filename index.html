@@ -3133,6 +3133,96 @@ a, button, .site-nav-pill, .site-nav-logo, .reel-card,
 }
 
 </style>
+<style id="continuous-scroll-css">
+/* ═══════════ CONTINUOUS SCROLL ═══════════
+   All six scenes are stacked into one long page. Scrolling travels through them. */
+html { scroll-behavior: auto !important; }
+body .page-wrap, body .page-wrap.active {
+  display: block !important; visibility: visible !important;
+  animation: none !important; will-change: auto !important; position: relative;
+}
+/* nav fades in once you leave the hero, instead of popping in */
+.site-nav { transition: opacity .45s ease, transform .45s ease, visibility .45s; }
+body.nav-hidden .site-nav { display: flex; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-10px); }
+
+/* progress bar */
+.scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1000; pointer-events: none; }
+.scroll-progress i { display: block; height: 100%; width: 100%; transform-origin: 0 50%; transform: scaleX(0);
+  background: linear-gradient(90deg, #C496A1, #8f86b8); }
+
+/* section dots */
+.scroll-dots { position: fixed; right: 18px; top: 50%; transform: translateY(-50%); z-index: 998;
+  display: flex; flex-direction: column; gap: 15px; }
+.scroll-dot { position: relative; width: 12px; height: 12px; padding: 0; border-radius: 50%;
+  border: 1.5px solid #6c6590; background: rgba(255,255,255,.6); cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.35), 0 1px 4px rgba(0,0,0,.25);
+  transition: transform .25s ease, background .25s ease, border-color .25s ease; }
+.scroll-dot:hover { transform: scale(1.25); }
+.scroll-dot.active { background: #C496A1; border-color: #C496A1; transform: scale(1.35); }
+.scroll-dot span { position: absolute; right: 24px; top: 50%; transform: translateY(-50%) translateX(6px);
+  font-family: 'CaveatLocal','Caveat',cursive; font-size: 18px; line-height: 1; color: #3A3530;
+  background: #f0ebe0; padding: 4px 12px; border-radius: 100px; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+.scroll-dot:hover span, .scroll-dot:focus-visible span { opacity: 1; transform: translateY(-50%); }
+@media (max-width: 768px) {
+  .scroll-dots { right: 7px; gap: 12px; }
+  .scroll-dot { width: 9px; height: 9px; }
+  .scroll-dot span { display: none; }
+}
+
+/* hero image drifts + eases as you scroll away */
+#pg-home .hero-split .hero-img {
+  transform: translate3d(0, calc(var(--hero-p, 0) * 70px), 0) scale(calc(1.02 + var(--hero-p, 0) * .07));
+  will-change: transform;
+}
+</style>
+<style id="seam-css">
+/* ═══════════ PAGE SEAMS: extra room + torn edge ═══════════ */
+:root { --seam-pad: 5vh; --seam-h: clamp(190px, 25vh, 340px); }
+body .page-wrap {
+  box-sizing: border-box;
+  padding-top: var(--pt, 0); padding-bottom: var(--pb, 0);
+  background:
+    linear-gradient(var(--ct, transparent), var(--ct, transparent)) top / 100% var(--pt, 0) no-repeat,
+    linear-gradient(var(--cb, transparent), var(--cb, transparent)) bottom / 100% var(--pb, 0) no-repeat;
+}
+#pg-home    { --pb: var(--seam-pad); --cb: rgb(242,228,183); }
+#pg-about   { --pt: var(--seam-pad); --pb: var(--seam-pad); --ct: rgb(250,227,196); --cb: rgb(250,227,196); }
+#pg-illus   { --pt: var(--seam-pad); --pb: var(--seam-pad); --ct: rgb(132,119,80);  --cb: rgb(127,120,104); }
+#pg-work    { --pt: var(--seam-pad); --pb: var(--seam-pad); --ct: rgb(253,249,240); --cb: rgb(253,249,240); }
+#pg-fineart { --pt: var(--seam-pad); --pb: var(--seam-pad); --ct: rgb(253,249,240); --cb: rgb(253,249,240); }
+#pg-contact { --pt: var(--seam-pad); --ct: rgb(238,237,245); }
+/* the two scenes with a fixed 100vh height grow by the extra room (their content stays 100vh) */
+body #pg-about { height: calc(100vh + 2 * var(--seam-pad)) !important; }
+body #pg-work  { height: calc(100vh + 2 * var(--seam-pad)) !important; }
+body #pg-illus { height: calc(100vh + 2 * var(--seam-pad)) !important; }
+
+/* soften the image-based scenes' edges into the flat seam colour */
+#pg-about .about-stage { background: rgb(250,227,196); }
+#pg-about .about-bg-img {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 4vh, #000 calc(100% - 4vh), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 4vh, #000 calc(100% - 4vh), transparent 100%);
+}
+.gallery-scene::before, .gallery-scene::after { content: ''; position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none; }
+.gallery-scene::before { top: 0;    height: 5vh; background: linear-gradient(rgb(132,119,80), rgba(132,119,80,0)); }
+.gallery-scene::after  { bottom: 0; height: 8vh; background: linear-gradient(rgba(127,120,104,0), rgb(127,120,104)); }
+
+
+/* soft fades where flat-colour scenes meet the seam (no hard cut-offs) */
+#pg-work::after, #pg-fineart::before, #pg-fineart::after, #pg-contact::before {
+  content: ''; position: absolute; left: 0; right: 0; height: 6vh; pointer-events: none; z-index: 2; }
+#pg-work::after     { bottom: var(--seam-pad); background: linear-gradient(rgba(253,249,240,0), rgb(253,249,240)); }
+#pg-fineart::before { top: var(--seam-pad);    background: linear-gradient(rgb(253,249,240), rgba(253,249,240,0)); }
+#pg-fineart::after  { bottom: var(--seam-pad); background: linear-gradient(rgba(253,249,240,0), rgb(253,249,240)); }
+#pg-contact::before { top: var(--seam-pad);    background: linear-gradient(rgb(238,237,245), rgba(238,237,245,0)); }
+
+/* the seam itself */
+.seam { position: relative; height: var(--seam-h); background: var(--a); z-index: 3; pointer-events: none; margin: -1px 0; }
+.seam .torn { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible;
+  filter: drop-shadow(0 -2px 4px rgba(60,40,10,.20)); }
+@media (max-width: 768px) { :root { --seam-pad: 3vh; --seam-h: clamp(150px, 20vh, 220px); } }
+#pg-home .hero.hero-split { border-bottom: none !important; }
+</style>
 </head>
 <body class="nav-hidden">
 
@@ -4154,45 +4244,202 @@ document.getElementById('journalReader').addEventListener('click', function(e) {
 </script>
 
 <script>
-function showPage(id) {
-  document.querySelectorAll('.page-wrap').forEach(p => p.classList.remove('active'));
-  const target = document.getElementById('pg-' + id);
-  if (target) target.classList.add('active');
-  document.querySelectorAll('.site-nav-pill').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.pg === id);
-  });
-  // hero is a clean landing screen — hide the nav only on home
-  document.body.classList.toggle('nav-hidden', id === 'home');
-  window.scrollTo({ top: 0, behavior: 'instant' });
-}
-
-/* Scroll / swipe / key on the hero advances into the About page */
+/* ═══════════ CONTINUOUS SCROLL ═══════════ */
 (function () {
-  const homeActive = () => document.getElementById('pg-home').classList.contains('active');
-  let firing = false;
-  function enterAbout() {
-    if (firing || !homeActive()) return;
-    firing = true;
-    showPage('about');
-    setTimeout(() => { firing = false; }, 600);
+  const ids   = ['home', 'about', 'illus', 'work', 'fineart', 'contact'];
+  const names = { home: 'Home', about: 'About', illus: 'Illustrations', work: 'Work', fineart: 'Fine Arts', contact: 'Contact' };
+  const secs  = ids.map(id => document.getElementById('pg-' + id));
+  const root  = document.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const smooth = !reduce && !matchMedia('(pointer: coarse)').matches;   // touch keeps native momentum
+
+  let tops = [], cur = scrollY, tgt = scrollY, animating = false, raf = 0, idx = -1;
+  const maxScroll = () => Math.max(0, root.scrollHeight - innerHeight);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  function measure() { tops = secs.map(s => s.getBoundingClientRect().top + scrollY + (parseFloat(getComputedStyle(s).paddingTop) || 0)); }
+
+  /* ---- eased scrolling ---- */
+  function tick() {
+    const d = tgt - cur;
+    if (Math.abs(d) < 0.4) { cur = tgt; scrollTo(0, cur); animating = false; raf = 0; return; }
+    cur += d * 0.085;
+    scrollTo(0, cur);
+    raf = requestAnimationFrame(tick);
   }
-  window.addEventListener('wheel', function (e) {
-    if (homeActive() && e.deltaY > 8) enterAbout();
-  }, { passive: true });
+  function go(y) {
+    tgt = clamp(y, 0, maxScroll());
+    if (!smooth) { scrollTo(0, tgt); return; }
+    if (!animating) { animating = true; cur = scrollY; raf = requestAnimationFrame(tick); }
+  }
+  const base = () => (animating ? tgt : scrollY);
 
-  let touchY = null;
-  window.addEventListener('touchstart', function (e) {
-    touchY = e.touches[0].clientY;
-  }, { passive: true });
-  window.addEventListener('touchmove', function (e) {
-    if (touchY === null || !homeActive()) return;
-    if (touchY - e.touches[0].clientY > 45) { enterAbout(); touchY = null; }
-  }, { passive: true });
+  window.showPage = function (id) {                 // kept so existing buttons keep working
+    const k = ids.indexOf(id);
+    if (k < 0) return;
+    measure();
+    go(tops[k]);
+  };
 
-  window.addEventListener('keydown', function (e) {
-    if (!homeActive()) return;
-    if (['ArrowDown', 'PageDown', ' ', 'Spacebar'].includes(e.key)) enterAbout();
+  const modalOpen = () =>
+    document.body.style.overflow === 'hidden' ||
+    [...document.querySelectorAll('.gallery-lb, .lightbox, #fineartLightbox, .journal-reader, .book-reader')].some(el => {
+      const cs = getComputedStyle(el);
+      return el.getBoundingClientRect().width > 0 && cs.visibility !== 'hidden' && cs.opacity !== '0' && cs.display !== 'none';
+    });
+
+  // let inner scrollers (e.g. the Work panels) scroll first; hand over to the page at their edge
+  function innerCanScroll(el, dy) {
+    while (el && el !== document.body && el !== root) {
+      const cs = getComputedStyle(el);
+      if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1) {
+        if (dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0) return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+  addEventListener('wheel', function (e) {
+    if (!smooth || e.ctrlKey || e.defaultPrevented || modalOpen()) return;
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+    if (innerCanScroll(e.target, dy)) return;
+    e.preventDefault();
+    go(base() + dy);
+  }, { passive: false });
+
+  addEventListener('keydown', function (e) {
+    if (!smooth || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || modalOpen()) return;
+    const el = e.target;
+    if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(el.tagName) || el.isContentEditable) return;
+    const k = Math.max(0, idx);
+    let y = null;
+    if (e.key === 'ArrowDown') y = base() + 120;
+    else if (e.key === 'ArrowUp') y = base() - 120;
+    else if (e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) y = tops[Math.min(ids.length - 1, k + 1)];
+    else if (e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) y = tops[Math.max(0, k - 1)];
+    else if (e.key === 'Home') y = 0;
+    else if (e.key === 'End') y = maxScroll();
+    if (y === null) return;
+    e.preventDefault();
+    go(y);
   });
+
+  // sync when something else moves the page (scrollbar drag, anchors, restore)
+  addEventListener('scroll', () => { if (!animating) { cur = tgt = scrollY; } }, { passive: true });
+
+
+  /* ---- seams: torn-paper edge between scenes ---- */
+  const seamColors = [            // [colour above, colour below]
+    ['rgb(242,228,183)', 'rgb(250,227,196)'],   // home    -> about
+    ['rgb(250,227,196)', 'rgb(132,119,80)'],    // about   -> illustrations
+    ['rgb(127,120,104)', 'rgb(253,249,240)'],   // illus   -> work
+    ['rgb(253,249,240)', 'rgb(253,249,240)'],   // work    -> fine arts
+    ['rgb(253,249,240)', 'rgb(238,237,245)']    // fine    -> contact
+  ];
+  const rng = seed => { let s = (seed * 9301 + 49297) >>> 0; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; };
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function tornPaths(seed) {              // viewBox 0 0 1440 400, tear sits around y=200
+    const r = rng(seed), W = 1440, pts = [];
+    for (let x = 0; x <= W; x += 6) {
+      const f = x / W;
+      const y = 200 + Math.sin(f * 6.283 * 1.1 + seed) * 22 + Math.sin(f * 6.283 * 2.7 + seed * 1.7) * 11
+              + Math.sin(f * 6.283 * 6.3 + seed * .3) * 5 + (r() - .5) * 7 + (r() < .03 ? (r() - .5) * 18 : 0);
+      pts.push([x, y]);
+    }
+    const poly = (arr, close) => 'M' + arr.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + close;
+    const body = poly(pts, 'L1440 430L0 430Z');
+    const rim = pts.map(p => [p[0], p[1] - 4 - r() * 7]);                // pale torn-paper fibres just above the edge
+    return { body, rim: poly(rim, 'L1440 430L0 430Z') };
+  }
+
+  const seams = [];
+  for (let k = 1; k < secs.length; k++) {
+    const [a, b] = seamColors[k - 1];
+    const el = document.createElement('div');
+    el.className = 'seam' + (k % 2 === 0 ? ' flip' : '');
+    el.style.setProperty('--a', a);
+    const tp = tornPaths(k * 7 + 3);
+    el.innerHTML =
+      '<svg class="torn" viewBox="0 0 1440 400" preserveAspectRatio="none" aria-hidden="true">' +
+        '<path d="' + tp.rim + '" fill="#fffaf0" fill-opacity=".8"/>' +
+        '<path d="' + tp.body + '" fill="' + b + '"/></svg>';
+    secs[k].before(el);
+    seams.push({ el });
+  }
+  /* ---- progress bar + section dots ---- */
+  const bar = document.createElement('div');
+  bar.className = 'scroll-progress'; bar.innerHTML = '<i></i>';
+  const dots = document.createElement('nav');
+  dots.className = 'scroll-dots'; dots.setAttribute('aria-label', 'Sections');
+  ids.forEach(id => {
+    const b = document.createElement('button');
+    b.className = 'scroll-dot'; b.setAttribute('aria-label', names[id]);
+    b.innerHTML = '<span>' + names[id] + '</span>';
+    b.addEventListener('click', () => showPage(id));
+    dots.appendChild(b);
+  });
+  document.body.append(bar, dots);
+  const barFill = bar.firstChild, dotEls = [...dots.children];
+
+  function update() {
+    const y = scrollY, vh = innerHeight;
+    barFill.style.transform = 'scaleX(' + (maxScroll() ? y / maxScroll() : 0) + ')';
+    root.style.setProperty('--hero-p', clamp(y / vh, 0, 1).toFixed(3));
+    document.body.classList.toggle('nav-hidden', y < vh * 0.35);
+    const mid = y + vh * 0.5;
+    let i = 0;
+    tops.forEach((tp, k) => { if (tp <= mid) i = k; });
+    if (i === idx) return;
+    idx = i;
+    secs.forEach((s, k) => s.classList.toggle('active', k === i));
+    document.querySelectorAll('.site-nav-pill').forEach(b => b.classList.toggle('active', b.dataset.pg === ids[i]));
+    dotEls.forEach((d, k) => d.classList.toggle('active', k === i));
+    try { history.replaceState(null, '', i === 0 ? location.pathname + location.search : '#' + ids[i]); } catch (_) {}
+  }
+  let ticking = false;
+  addEventListener('scroll', () => {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(() => { update(); ticking = false; });
+  }, { passive: true });
+  addEventListener('resize', () => { measure(); update(); });
+  if (window.ResizeObserver) new ResizeObserver(() => { measure(); update(); }).observe(document.body);
+  addEventListener('load', () => { measure(); update(); });
+  measure(); update();
+
+  // open straight onto a section if the link has one (e.g. …/index.html#work)
+  const h = location.hash.replace('#', '');
+  if (ids.includes(h) && h !== 'home') requestAnimationFrame(() => { measure(); scrollTo(0, tops[ids.indexOf(h)]); cur = tgt = scrollY; update(); });
+
+  /* ---- reveal-as-you-scroll (uses the Web Animations API so existing styles stay untouched) ---- */
+  if (!reduce && 'IntersectionObserver' in window) {
+    const groups = [
+      ['#pg-about .book-page', 0], ['#pg-about .note-box', 140],
+      ['#pg-illus .gallery-frame', 130],
+      ['#pg-work .work-tabs', 0], ['#pg-work .work-stage', 120],
+      ['#pg-fineart .fineart-header', 0], ['#pg-fineart .journal-desc', 120], ['#pg-fineart .journal-book', 240],
+      ['#pg-contact .contact-eyebrow', 0], ['#pg-contact .contact-title', 100], ['#pg-contact .contact-sub', 200], ['#pg-contact .c-link', 300]
+    ];
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const el = en.target; io.unobserve(el);
+        const a = el.animate(
+          [{ opacity: 0, translate: '0 38px' }, { opacity: 1, translate: '0 0' }],
+          { duration: 950, delay: +el.dataset.rvd || 0, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }
+        );
+        const done = () => { el.style.opacity = ''; };
+        a.onfinish = done; a.oncancel = done;
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -6% 0px' });
+    groups.forEach(([sel, step]) => {
+      document.querySelectorAll(sel).forEach((el, n) => {
+        el.style.opacity = '0';
+        el.dataset.rvd = n * step;
+        io.observe(el);
+      });
+    });
+  }
 })();
 
 // Reel card click → lightbox
@@ -4303,8 +4550,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const workPage = document.getElementById('pg-work');
     if (!workPage || !workPage.classList.contains('active')) return;
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft')   { workGo(current - 1); e.preventDefault(); }
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight'){ workGo(current + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { workGo(current - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { workGo(current + 1); e.preventDefault(); }
   });
 
   // Initialize on load
